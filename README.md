@@ -1,7 +1,15 @@
-# source-engine
-Welcome to source engine:)
+# Форк движка nillerusr'a для модов, тестов и извращений над движком.
+Welcome to hell :)
 
-Discord: https://discord.gg/hZRB7WMgGw
+
+
+
+
+
+
+
+
+Discord сервер nillerusr'a : https://discord.gg/hZRB7WMgGw
 
 # Current tasks
 - [x] Windows build support for waf
