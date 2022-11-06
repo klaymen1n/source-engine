@@ -1,12 +1,6 @@
-//========= Copyright Valve Corporation, All rights reserved. ============//
-//
-// Purpose: 
-//
-// $NoKeywords: $
-//===========================================================================//
 #include "client_pch.h"
 #include "ivideomode.h"
-#include "vgui_DebugSystemPanel.h"
+#include "spawnmenu.h"
 #include <vgui/ISurface.h>
 #include <vgui_controls/Controls.h>
 #include <vgui_controls/MenuButton.h>
@@ -33,24 +27,24 @@ using namespace vgui;
 //-----------------------------------------------------------------------------
 // Purpose: A menu button that knows how to parse cvar/command menu data from gamedir\scripts\debugmenu.txt
 //-----------------------------------------------------------------------------
-class CDebugMenuButton : public MenuButton
+class CSpawnMenuButton : public MenuButton
 {
 	typedef MenuButton BaseClass;
 
 public:
 	// Construction
-	CDebugMenuButton( Panel *parent, const char *panelName, const char *text );
+	CSpawnMenuButton( Panel *parent, const char *panelName, const char *text );
 
 private:
 	// Menu associated with this button
 	Menu	*m_pMenu;
 };
 
-class CDebugCommandButton : public vgui::Button
+class CSpawnCommandButton : public vgui::Button
 {
 typedef vgui::Button BaseClass;
 public:
-	CDebugCommandButton( vgui::Panel *parent, const char *panelName, const char *labelText, const char *command )
+	CSpawnCommandButton( vgui::Panel *parent, const char *panelName, const char *labelText, const char *command )
 		: BaseClass( parent, panelName, labelText )
 	{
 		AddActionSignalTarget( this );
@@ -67,11 +61,11 @@ public:
 	}
 };
 
-class CDebugCommandCheckbox : public vgui::CheckButton
+class CSpawnMenuCheckbox : public vgui::CheckButton
 {
 typedef vgui::CheckButton BaseClass;
 public:
-	CDebugCommandCheckbox( vgui::Panel *parent, const char *panelName, const char *labelText, const char *command )
+	CSpawnMenuCheckbox( vgui::Panel *parent, const char *panelName, const char *labelText, const char *command )
 		: BaseClass( parent, panelName, labelText )
 	{
 		m_pVar = ( ConVar * )g_pCVar->FindVar( command );
@@ -91,11 +85,11 @@ private:
 	ConVar		*m_pVar;
 };
 
-class CDebugIncrementCVarButton : public vgui::Button
+class CSpawnMenuCVarButton : public vgui::Button
 {
 typedef vgui::Button BaseClass;
 public:
-	CDebugIncrementCVarButton( vgui::Panel *pParent, const char *pPanelName, const char *pLabelText, const char *pCommand )
+	CSpawnMenuCVarButton( vgui::Panel *pParent, const char *pPanelName, const char *pLabelText, const char *pCommand )
 		: BaseClass( pParent, pPanelName, pLabelText )
 	{
 		CCommand args;
@@ -164,11 +158,11 @@ private:
 
 };
 
-class CDebugOptionsPage : public vgui::PropertyPage
+class CSpawnMenuOptionsPage : public vgui::PropertyPage
 {
 	typedef vgui::PropertyPage BaseClass;
 public:
-	CDebugOptionsPage ( vgui::Panel *parent, const char *panelName )
+	CSpawnMenuOptionsPage ( vgui::Panel *parent, const char *panelName )
 		: BaseClass( parent, panelName )
 	{
 		vgui::ivgui()->AddTickSignal( GetVPanel(), 250 );
@@ -203,7 +197,6 @@ public:
 
 		int tall = GetTall();
 
-		// LoadControlSettings( va( "resource\\%s.res", kv->GetName() ) );
 		for ( int i = 0; i < c; i++ )
 		{
 			vgui::Panel *p = m_LayoutItems[ i ];
@@ -224,29 +217,29 @@ public:
 		for (KeyValues *control = kv->GetFirstSubKey(); control != NULL; control = control->GetNextKey())
 		{
 			const char *t;
-			
+
 			t = control->GetString( "command", "" );
 			if ( t && t[0] )
 			{
-				CDebugCommandButton *btn = new CDebugCommandButton( this, "CommandButton", control->GetName(), t );
+				CSpawnCommandButton *btn = new CSpawnCommandButton( this, "CommandButton", control->GetName(), t );
 				m_LayoutItems.AddToTail( btn );
 				continue;
 			}
 			t = control->GetString( "togglecvar", "" );
 			if ( t && t[0] )
 			{
-				CDebugCommandCheckbox *checkbox = new CDebugCommandCheckbox( this, "CommandCheck", control->GetName(), t );
+				CSpawnMenuCheckbox *checkbox = new CSpawnMenuCheckbox( this, "CommandCheck", control->GetName(), t );
 				m_LayoutItems.AddToTail( checkbox );
 				continue;
 			}
 			t = control->GetString( "incrementcvar", "" );
 			if ( t && t[0] )
 			{
-				CDebugIncrementCVarButton *increment = new CDebugIncrementCVarButton( this, "IncrementCVar", control->GetName(), t );
+				CSpawnMenuCVarButton *increment = new CSpawnMenuCVarButton( this, "IncrementCVar", control->GetName(), t );
 				m_LayoutItems.AddToTail( increment );
 				continue;
 			}
-			
+
 		}
 	}
 
@@ -255,20 +248,20 @@ private:
 	CUtlVector< vgui::Panel * >		m_LayoutItems;
 };
 
-class CDebugOptionsPanel : public vgui::PropertyDialog
+class CSpawnMenuOptionsPanel : public vgui::PropertyDialog
 {
 	typedef vgui::PropertyDialog BaseClass;
 public:
 
-	CDebugOptionsPanel( vgui::Panel *parent, const char *panelName )
+	CSpawnMenuOptionsPanel( vgui::Panel *parent, const char *panelName )
 		: BaseClass( parent, panelName )
 	{
-		SetTitle( "Debug Options", true );
+		SetTitle( "Options", true );
 
-		KeyValues *kv = new KeyValues( "DebugOptions" );
+		KeyValues *kv = new KeyValues( "Options" );
 		if ( kv )
 		{
-			if ( kv->LoadFromFile(g_pFullFileSystem, "scripts/DebugOptions.txt") )
+			if ( kv->LoadFromFile(g_pFullFileSystem, "addons/menu/spawnmenu.txt") )
 			{
 				for (KeyValues *dat = kv->GetFirstSubKey(); dat != NULL; dat = dat->GetNextKey())
 				{
@@ -283,22 +276,22 @@ public:
 						continue;
 					}
 
-					CDebugOptionsPage *page = new CDebugOptionsPage( this, dat->GetName() );
+					CSpawnMenuOptionsPage *page = new CSpawnMenuOptionsPage( this, dat->GetName() );
 					page->Init( dat );
-	
+
 					AddPage( page, dat->GetName() );
 				}
 			}
 			kv->deleteThis();
 		}
-	
+
 		GetPropertySheet()->SetTabWidth(72);
 		SetPos( videomode->GetModeStereoWidth() - GetWide() - 10 , 10 );
 		SetVisible( true );
 
-		if ( g_pFullFileSystem->FileExists( "resource/DebugOptionsPanel.res" ) )
+		if ( g_pFullFileSystem->FileExists( "addons/menu/spawnmenu.res" ) )
 		{
-			LoadControlSettings( "resource/DebugOptionsPanel.res" );
+			LoadControlSettings( "addons/menu/spawnmenu.res" );
 		}
 	}
 
@@ -306,33 +299,32 @@ public:
 };
 
 
-void CDebugOptionsPanel::Init( KeyValues *kv )
+void CSpawnMenuOptionsPanel::Init( KeyValues *kv )
 {
 }
 
 //-----------------------------------------------------------------------------
 // Purpose: Constructor
 //-----------------------------------------------------------------------------
-CDebugMenuButton::CDebugMenuButton(Panel *parent, const char *panelName, const char *text)
+CSpawnMenuButton::CSpawnMenuButton(Panel *parent, const char *panelName, const char *text)
 	: BaseClass( parent, panelName, text )
 {
 	MakePopup();
 
 	// Assume no menu
-	m_pMenu = new Menu( this, "DebugMenu" );
-	m_pMenu->AddMenuItem( "Debug Panel", "toggledebugpanel", parent );
-	m_pMenu->AddMenuItem( "Quit", "Quit", parent );
-
+	m_pMenu = new Menu( this, "Spawn Menu" );
+	m_pMenu->AddMenuItem( "Menu", "close", parent );
+	m_pMenu->AddMenuItem( "Close", "Quit", parent );
 	MenuButton::SetMenu(m_pMenu);
 	SetOpenDirection(Menu::DOWN);
 }
 
 //-----------------------------------------------------------------------------
 // Purpose: Container for menu button
-// Input  : *parent - 
-//			*panelName - 
+// Input  : *parent -
+//			*panelName -
 //-----------------------------------------------------------------------------
-CDebugSystemPanel::CDebugSystemPanel( Panel *parent, const char *panelName )
+CSpawnMenuPanel::CSpawnMenuPanel( Panel *parent, const char *panelName )
 	: BaseClass( parent, panelName )
 {
 
@@ -344,43 +336,44 @@ CDebugSystemPanel::CDebugSystemPanel( Panel *parent, const char *panelName )
 	SetPaintEnabled( false );
 	SetPaintBackgroundEnabled( false );
 
-	m_pDebugMenu = new CDebugMenuButton( this, "Debug Menu", "Debug Menu" );
-	
+	m_pSpawnMenu = new CSpawnMenuButton( this, "Spawn Menu", "Spawn Menu" );
+
 	int h = 24;
 	// Locate it at top left
-	m_pDebugMenu->SetPos( 0, 0 );
-	m_pDebugMenu->SetSize( 110, h );
+	m_pSpawnMenu->SetPos( 0, 0 );
+	m_pSpawnMenu->SetSize( 110, h );
 
-	m_hDebugOptions = new CDebugOptionsPanel( this, "DebugOptions" );
+	m_hSpawnOptions = new CSpawnMenuOptionsPanel( this, "Spawn Menu" );
 }
 
 //-----------------------------------------------------------------------------
 // Purpose: Hook so we can force cursor visible
-// Input  : state - 
+// Input  : state -
 //-----------------------------------------------------------------------------
-void CDebugSystemPanel::SetVisible( bool state )
+void CSpawnMenuPanel::SetVisible( bool state )
 {
 	BaseClass::SetVisible( state );
 	if ( state )
 	{
-		surface()->SetCursor( GetCursor() );
+		//surface()->SetCursor( GetCursor() );
 	}
 }
 
-void CDebugSystemPanel::OnCommand( const char *command )
+void CSpawnMenuPanel::OnCommand( const char *command )
 {
-	if ( !Q_strcasecmp( command, "toggledebugpanel" ) )
+	if ( !Q_strcasecmp( command, "close" ) )
 	{
-		if ( m_hDebugOptions )
+		if ( m_hSpawnOptions )
 		{
-			m_hDebugOptions->SetVisible( !m_hDebugOptions->IsVisible() );
+			m_hSpawnOptions->SetVisible( !m_hSpawnOptions->IsVisible() );
 		}
 		return;
-	}
-	else if ( !Q_strcasecmp( command, "quit" ) )
-	{
-		Cbuf_AddText( "quit\n" );
-	}
+		//Cbuf_AddText( "spawnmenu 0\n" );
+		}
+		else if ( !Q_strcasecmp( command, "quit" ) )
+		{
+			Cbuf_AddText( "spawnmenu 0\n" );
+		}
 
 	BaseClass::OnCommand( command );
 }

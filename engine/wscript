@@ -193,6 +193,7 @@ def build(bld):
 		'EngineSoundServer.cpp',
 		'audio/voice_wavefile.cpp',
 		'audio/vox.cpp',
+		'spawnmenu.cpp',
 
 		#'audio/snd_dev_xaudio.cpp',[$X360]
 		#'audio/snd_wave_mixer_xma.cpp',	[$X360]
@@ -324,7 +325,7 @@ def build(bld):
 			'vgui_texturebudgetpanel.cpp',
 			'vgui_vprofgraphpanel.cpp',
 			'vgui_vprofpanel.cpp',
-			'toolframework.cpp'
+			'toolframework.cpp',
 		]
 		
 		if bld.env.DEST_OS != 'win32':

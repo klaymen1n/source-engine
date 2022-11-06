@@ -96,6 +96,7 @@ public:
 	virtual void ClearConsole() = 0;
 
 	virtual void HideDebugSystem() = 0;
+	virtual void HideSpawnMenu() = 0;
 
 	// level loading
 	virtual void OnLevelLoadingStarted() = 0;

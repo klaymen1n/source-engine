@@ -31,6 +31,7 @@
 #include "igame.h"
 #include "con_nprint.h"
 #include "vgui_DebugSystemPanel.h"
+#include "spawnmenu.h"
 #include "tier0/vprof.h"
 #include "cl_demoactionmanager.h"
 #include "enginebugreporter.h"
@@ -381,12 +382,16 @@ private:
 	// debug overlays
 	bool IsDebugSystemVisible();
 	void HideDebugSystem();
+	bool IsSpawnMenuVisible();
+	void HideSpawnMenu();
 
 	bool IsShiftKeyDown();
 	bool IsAltKeyDown();
 	bool IsCtrlKeyDown();
 
 	CON_COMMAND_MEMBER_F( CEngineVGui, "debugsystemui", ToggleDebugSystemUI, "Show/hide the debug system UI.", FCVAR_CHEAT );
+
+	CON_COMMAND_MEMBER_F( CEngineVGui, "spawnmenu", ToggleSpawnMenu, "lemonparty", FCVAR_REPLICATED );
 
 private:
 	enum { MAX_NUM_FACTORIES = 5 };
@@ -408,6 +413,7 @@ private:
 	// Want engine tools to be on top of other engine panels
 	CEnginePanel *staticEngineToolsPanel;
 	CDebugSystemPanel *staticDebugSystemPanel;
+	CSpawnMenuPanel *staticSpawnMenuPanel;
 	CFocusOverlayPanel *staticFocusOverlayPanel;
 
 #ifdef VPROF_ENABLED
@@ -521,6 +527,7 @@ CEngineVGui::CEngineVGui()
 	staticGameUIPanel = NULL;
 	staticEngineToolsPanel = NULL;
 	staticDebugSystemPanel = NULL;
+	staticSpawnMenuPanel = NULL;
 	staticFocusOverlayPanel = NULL;
 
 	m_hStaticGameUIModule = NULL;
@@ -729,9 +736,13 @@ void CEngineVGui::Init()
 	if ( IsPC() )
 	{
 		COM_TimestampedLog( "Building Panels (staticDebugSystemPanel)" );
+		COM_TimestampedLog( "Building Panels (staticSpawnMenuPanel)" );
 
 		staticDebugSystemPanel = new CDebugSystemPanel( staticPanel, "Engine Debug System" );
 		staticDebugSystemPanel->SetZPos( 125 );
+
+		staticSpawnMenuPanel = new CSpawnMenuPanel( staticPanel, "SpawnMenu" );
+		staticSpawnMenuPanel->SetZPos( 125 );
 
 		// Install demo playback/editing UI
 		CDemoUIPanel::InstallDemoUI( staticEngineToolsPanel );
@@ -942,6 +953,7 @@ void CEngineVGui::Shutdown()
 	staticClientDLLPanel	= NULL;
 	staticEngineToolsPanel = NULL;
 	staticDebugSystemPanel = NULL;
+	staticSpawnMenuPanel = NULL;
 	staticFocusOverlayPanel = NULL;
 	staticGameDLLPanel = NULL;
 
@@ -1778,6 +1790,11 @@ bool CEngineVGui::IsDebugSystemVisible( void )
 	return staticDebugSystemPanel ? staticDebugSystemPanel->IsVisible() : false;
 }
 
+bool CEngineVGui::IsSpawnMenuVisible( void )
+{
+	return staticSpawnMenuPanel ? staticSpawnMenuPanel->IsVisible() : false;
+}
+
 void CEngineVGui::HideDebugSystem( void )
 {
 	if ( staticDebugSystemPanel )
@@ -1787,6 +1804,14 @@ void CEngineVGui::HideDebugSystem( void )
 	}
 }
 
+void CEngineVGui::HideSpawnMenu( void )
+{
+	if ( staticSpawnMenuPanel )
+	{
+		staticSpawnMenuPanel->SetVisible( false );
+		SetEngineVisible( true );
+	}
+}
 
 void CEngineVGui::ToggleDebugSystemUI( const CCommand &args )
 {
@@ -1814,6 +1839,36 @@ void CEngineVGui::ToggleDebugSystemUI( const CCommand &args )
 		// clear any keys that might be stuck down
 		ClearIOStates();
 		staticDebugSystemPanel->SetVisible( true );
+		SetEngineVisible( false );
+	}
+}
+
+void CEngineVGui::ToggleSpawnMenu( const CCommand &args )
+{
+	if ( !staticSpawnMenuPanel )
+		return;
+
+	bool bVisible;
+	if ( args.ArgC() == 1 )
+	{
+		// toggle the game UI
+		bVisible = !IsSpawnMenuVisible();
+	}
+	else
+	{
+		bVisible = atoi( args[1] ) != 0;
+	}
+
+	if ( !bVisible )
+	{
+		staticSpawnMenuPanel->SetVisible( false );
+		SetEngineVisible( true );
+	}
+	else
+	{
+		// clear any keys that might be stuck down
+		ClearIOStates();
+		staticSpawnMenuPanel->SetVisible( true );
 		SetEngineVisible( false );
 	}
 }

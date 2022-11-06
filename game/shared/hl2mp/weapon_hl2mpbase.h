@@ -13,6 +13,9 @@
 #include "hl2mp_player_shared.h"
 #include "basecombatweapon_shared.h"
 #include "hl2mp_weapon_parse.h"
+#ifndef CLIENT_DLL
+	#include "ai_basenpc.h"
+#endif
 
 #if defined( CLIENT_DLL )
 	#define CWeaponHL2MPBase C_WeaponHL2MPBase
@@ -40,12 +43,11 @@ public:
 
 	#ifdef GAME_DLL
 		DECLARE_DATADESC();
-
+	
 		void SendReloadSoundEvent( void );
 
 		void Materialize( void );
-		virtual	int ObjectCaps( void );
-		virtual	void FallThink( void );
+		virtual	int	ObjectCaps( void );
 	#endif
 
 	// All predicted weapons need to implement and return true
