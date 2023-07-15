@@ -13,7 +13,6 @@
 #include "KeyValues.h"
 #include "cs_achievement_constants.h"
 #include "fmtstr.h"
-
 #ifdef CLIENT_DLL
 
 	#include "networkstringtable_clientdll.h"
@@ -1418,7 +1417,8 @@ ConVar cl_autohelp(
 		// Find the killer & the scorer
 		if ( !pScorer )
 			return;
-
+		
+#ifndef DEATHMATCH 			//No teams in deathmatch!
 		if ( IPointsForKill( pScorer, pVictim ) < 0 )
 		{
 			// team-killer!
@@ -1452,6 +1452,9 @@ ConVar cl_autohelp(
 			}
 		}
 		else
+#else
+		if ( IPointsForKill( pScorer, pVictim ))
+#endif
 		{
 			//=============================================================================
 			// HPE_BEGIN:
@@ -2502,6 +2505,7 @@ ConVar cl_autohelp(
 				break;
 		}
 
+#ifndef DEATHMATCH
 		//*******Catch up code by SupraFiend. Scale up the loser bonus when teams fall into losing streaks
 		if (m_iRoundWinStatus == WINNER_TER) // terrorists won
 		{
@@ -2549,6 +2553,7 @@ ConVar cl_autohelp(
 
 		// Update individual players accounts and respawn players
 
+#endif
 		//**********new code by SupraFiend
 		//##########code changed by MartinO 
 		//the round time stamp must be set before players are spawned
@@ -4026,7 +4031,7 @@ ConVar cl_autohelp(
 		CCSPlayer *pPlayer = ToCSPlayer( pBasePlayer );
 		if ( !pPlayer )
 			Error( "FPlayerCanRespawn: pPlayer=0" );
-
+#ifndef DEATHMATCH
 		// Player cannot respawn twice in a round
 		if ( pPlayer->m_iNumSpawns > 0 && m_bFirstConnected )
 			return false;
@@ -4065,11 +4070,19 @@ ConVar cl_autohelp(
 				return false;
 			}
 		}
-
+#else
 		// Player cannot respawn while in the Choose Appearance menu
 		//if ( pPlayer->m_iMenu == Menu_ChooseAppearance )
 		//	return false;
+		// Only valid team members can spawn
+		if ( pPlayer->GetTeamNumber() != TEAM_CT && pPlayer->GetTeamNumber() != TEAM_TERRORIST )
+			return false;
 
+		// Only players with a valid class can spawn
+		if ( pPlayer->GetClass() == CS_CLASS_NONE )
+			return false;
+#endif		
+		
 		return true;
 	}
 
@@ -4463,6 +4476,46 @@ ConVar cl_autohelp(
 
 	void CCSGameRules::CheckMapConditions()
 	{
+#ifdef DEATHMATCH
+		FileHandle_t file;
+		char szMapPath[MAX_PATH];
+		
+		Q_snprintf(szMapPath, sizeof(szMapPath), "scripts/maps/%s.txt", STRING(gpGlobals->mapname));
+		printf("%s\n", szMapPath);
+		file = g_pFullFileSystem->Open(szMapPath,"r");
+		if(file != FILESYSTEM_INVALID_HANDLE)
+		{
+			int fileSize = g_pFullFileSystem->Size(file);
+			char* bufer = new char[fileSize + 1];
+			g_pFullFileSystem->Read(bufer, fileSize, file);
+			
+			
+			char *line = strtok(bufer,"\n");
+			while(line)
+			{
+				float v_x, v_y, v_z, w_x, w_y, w_z;
+				
+				sscanf(line, "%f %f %f %f %f %f", &v_x, &v_y, &v_z, &w_x, &w_y, &w_z);
+				
+				Vector TempVec {v_x, v_y, v_z};
+				QAngle TempAng {w_x, w_y, w_z};
+				
+				SpawnAng.AddToTail(TempAng);
+				SpawnPos.AddToTail(TempVec);
+				
+				line = strtok(NULL,"\n");
+			}
+		delete [] bufer;
+		g_pFullFileSystem->Close(file);
+		}
+		else
+		{
+			Warning("No file with spawn points was found!\n");
+		}
+#endif		
+		
+		
+		//TODO MOVE PARSER HERE!!!
 		// Check to see if this map has a bomb target in it
 		if ( gEntList.FindEntityByClassname( NULL, "func_bomb_target" ) )
 		{
@@ -4692,6 +4745,7 @@ ConVar cl_autohelp(
 
 	CBaseEntity *CCSGameRules::GetPlayerSpawnSpot( CBasePlayer *pPlayer )
 	{
+#ifndef DEATHMATCH
 		// gat valid spwan point
 		CBaseEntity *pSpawnSpot = pPlayer->EntSelectSpawnPoint();
 
@@ -4702,7 +4756,17 @@ ConVar cl_autohelp(
 		pPlayer->Teleport( &pSpawnSpot->GetAbsOrigin(), &pSpawnSpot->GetLocalAngles(), &vec3_origin );
 		pPlayer->m_Local.m_vecPunchAngle = vec3_angle;
 		
-		return pSpawnSpot;
+		return pSpawnSpot
+#else
+		int RandomPoint = random->RandomInt(0 , SpawnPos.Size() -1 );
+		Vector SpawnOrigin = SpawnPos.Element(RandomPoint);
+		QAngle SpawnAngle = SpawnAng.Element(RandomPoint);
+		
+		pPlayer->Teleport(&SpawnOrigin, &SpawnAngle, &vec3_origin);
+		pPlayer->m_Local.m_vecPunchAngle = vec3_angle;		
+		
+		return nullptr;
+#endif
 	}
 	
 	// checks if the spot is clear of players

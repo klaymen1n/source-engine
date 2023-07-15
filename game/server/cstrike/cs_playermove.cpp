@@ -54,7 +54,13 @@ void CCSPlayerMove::StartCommand( CBasePlayer *player, CUserCmd *cmd )
 
 	// Reset this.. it gets reset each frame that we're in a bomb zone.
 	pPlayer->m_bInBombZone = false;
+	
+#ifndef DEATHMATCH
 	pPlayer->m_bInBuyZone = false;
+	
+#else
+	pPlayer->m_bInBuyZone = true;
+#endif
 	pPlayer->m_bInHostageRescueZone = false;
 
 	BaseClass::StartCommand( player, cmd );

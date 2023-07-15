@@ -1171,10 +1171,15 @@ void CCSPlayer::Event_Killed( const CTakeDamageInfo &info )
 	//=============================================================================
 	 
 	CBaseEntity* pAttacker = info.GetAttacker();
+#ifndef DEATHMATCH
 	bool friendlyFire = pAttacker && pAttacker->GetTeamNumber() == GetTeamNumber();
-
+	
+	
 	//Only count the drop if it was not friendly fire
 	DropWeapons(true, !friendlyFire);
+#else
+	bool friendlyFire = false;
+#endif	
 	 
 	//=============================================================================
 	// HPE_END
@@ -1521,9 +1526,10 @@ void CCSPlayer::UpdateRadar()
 
 		bool bSameTeam = pPlayer->GetTeamNumber() == GetTeamNumber();
 
+#ifndef DEATHMATCH
 		if ( playerbits.Get(i) && bSameTeam == true )
 			continue; // this player is in my PVS and not in my team, don't update radar pos
-
+#endif
 		if ( pPlayer == this )
 			continue;
 

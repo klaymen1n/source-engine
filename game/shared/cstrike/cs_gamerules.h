@@ -139,6 +139,11 @@ private:
 	CNetworkVar( bool, m_bBlackMarket );
 
 	bool		m_bDontUploadStats;
+	
+#ifdef DEATHMATCH
+	CUtlVector<Vector> SpawnPos;
+	CUtlVector<QAngle> SpawnAng;
+#endif
 
 public:
 
