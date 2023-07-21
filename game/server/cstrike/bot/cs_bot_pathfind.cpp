@@ -1192,6 +1192,7 @@ float CCSBot::GetApproximateFallDamage( float height ) const
  */
 bool CCSBot::IsFriendInTheWay( const Vector &goalPos )
 {
+#ifndef DEATHMATCH	
 	// do this check less often to ease CPU burden
 	if (!m_avoidFriendTimer.IsElapsed())
 	{
@@ -1260,6 +1261,11 @@ bool CCSBot::IsFriendInTheWay( const Vector &goalPos )
 	}
 
 	return m_isFriendInTheWay;
+#else
+	return false;
+#endif
+	
+	
 }
 
 

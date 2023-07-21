@@ -1526,10 +1526,9 @@ void CCSPlayer::UpdateRadar()
 
 		bool bSameTeam = pPlayer->GetTeamNumber() == GetTeamNumber();
 
-#ifndef DEATHMATCH
 		if ( playerbits.Get(i) && bSameTeam == true )
 			continue; // this player is in my PVS and not in my team, don't update radar pos
-#endif
+
 		if ( pPlayer == this )
 			continue;
 
@@ -1820,8 +1819,12 @@ int CCSPlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 	float flArmorRatio = 0.5f;
 	float flDamage = info.GetDamage();
 
+	
+#ifndef DEATHMATCH
 	bool bFriendlyFire = CSGameRules()->IsFriendlyFireOn();
-
+#else
+	bool bFriendlyFire = true;
+#endif
 	//=============================================================================
 	// HPE_BEGIN:
 	// [tj] Added properties for goose chase achievement
@@ -1864,7 +1867,7 @@ int CCSPlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 	// HPE_END
 	//=============================================================================
 
-
+#ifndef DEATHMATCH
 	// warn about team attacks
 	if ( bFriendlyFire && pInflictor->GetTeamNumber() == GetTeamNumber() && pInflictor != this && info.GetAttacker() != this )
 	{
@@ -1922,7 +1925,7 @@ int CCSPlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 		{
 			m_flVelocityModifier = 0.5;
 		}
-
+#endif
 //=============================================================================
 // HPE_BEGIN:
 //=============================================================================
@@ -2146,12 +2149,13 @@ int CCSPlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 
 		return CBaseCombatCharacter::OnTakeDamage( info );
 	}
+#ifndef DEATHMATCH	
 	else
 	{
 		return 0;
 	}
 }
-
+#endif
 
 //MIKETODO: this probably should let the shield model catch the trace attacks.
 bool CCSPlayer::IsHittingShield( const Vector &vecDirection, trace_t *ptr )
@@ -5394,6 +5398,7 @@ void CCSPlayer::State_PreThink_DEATH_ANIM()
 	// transition to Freezecam mode once the death animation is complete
 	if ( gpGlobals->curtime >= fDeathEnd )
 	{
+#ifndef DEATHMATCH
 		if ( GetObserverTarget() && GetObserverTarget() != this &&
 			!m_bAbortFreezeCam && gpGlobals->curtime < fFreezeEnd && GetObserverMode() != OBS_MODE_FREEZECAM)
 		{
@@ -5406,6 +5411,11 @@ void CCSPlayer::State_PreThink_DEATH_ANIM()
 				State_Transition( STATE_OBSERVER_MODE );
 			}
 		}
+#else
+		StopObserverMode();
+		State_Transition( STATE_ACTIVE );
+		respawn( this, false );
+#endif
 	}
 
 	// Don't transfer to observer state until the freeze cam is done

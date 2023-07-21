@@ -82,10 +82,11 @@ void BotMeme::Transmit( CCSBot *sender ) const
 		if (!player->IsBot() && !player->IsAlive())
 			continue;
 
+#ifndef DEATHMATCH
 		// ignore enemies, since we can't hear them talk
 		if (!player->InSameTeam( sender ))
 			continue;
-
+#endif
 		// if not a bot, fail the test
 		if (!player->IsBot())
 			continue;

@@ -348,12 +348,13 @@ void AttackState::OnUpdate( CCSBot *me )
 			// only retreat if at least one of them is aiming at me
 			if (me->IsAnyVisibleEnemyLookingAtMe( CHECK_FOV ))
 			{
+#ifndef DEATHMATCH
 				// tell our teammates our plight
 				if (isPinnedDown)
 					me->GetChatter()->PinnedDown();
 				else if (!me->CanSeeSniper())
 					me->GetChatter()->Scared();
-
+#endif
 				m_retreatTimer.Start( RandomFloat( 3.0f, 15.0f ) );
 
 				// try to retreat
@@ -524,6 +525,7 @@ void AttackState::OnUpdate( CCSBot *me )
 	// see if we "notice" that our prey is dead
 	if (me->IsAwareOfEnemyDeath())
 	{
+#ifndef DEATHMATCH		
 		// let team know if we killed the last enemy
 		if (me->GetLastVictimID() == enemy->entindex() && me->GetNearbyEnemyCount() <= 1)
 		{
@@ -535,7 +537,7 @@ void AttackState::OnUpdate( CCSBot *me )
 				me->Wait( RandomFloat( 1.0f, 3.0f ) );
 			}
 		}
-
+#endif
 		StopAttacking( me );
 		return;
 	}

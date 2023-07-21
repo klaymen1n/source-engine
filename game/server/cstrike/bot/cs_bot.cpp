@@ -108,6 +108,7 @@ int CCSBot::OnTakeDamage( const CTakeDamageInfo &info )
 	BecomeAlert();
 	StopWaiting();
 
+#ifndef DEATHMATCH
 	// if we were attacked by a teammate, rebuke
 	if (attacker->IsPlayer())
 	{
@@ -118,6 +119,9 @@ int CCSBot::OnTakeDamage( const CTakeDamageInfo &info )
 	}
 
 	if (attacker->IsPlayer() && IsEnemy( attacker ))
+#else
+	if (attacker->IsPlayer())
+#endif		
 	{
 		// Track previous attacker so we don't try to panic multiple times for a shotgun blast
 		CCSPlayer *lastAttacker = m_attacker;
@@ -654,9 +658,11 @@ CCSPlayer *CCSBot::GetImportantEnemy( bool checkVisibility ) const
 		if (!player->IsAlive())
 			continue;
 
+#ifndef DEATHMATCH		
 		// skip friends
 		if (InSameTeam( player ))
 			continue;
+#endif
 
 		// is it "important"
 		if (!ctrl->IsImportantPlayer( player ))

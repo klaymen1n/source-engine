@@ -1257,7 +1257,7 @@ CCSPlayer *CCSBot::FindMostDangerousThreat( void )
 			// is it alive?
 			if (!player->IsAlive())
 				continue;
-
+#ifndef DEATHMATCH
 			// is it an enemy?
 			if (player->InSameTeam( this ))
 			{
@@ -1285,10 +1285,10 @@ CCSPlayer *CCSBot::FindMostDangerousThreat( void )
 						closeHumanFriendRange = rangeSq;
 					}
 				}
-
 				continue;
 			}
-
+#endif
+			
 			// check if this enemy is fully or partially visible
 			unsigned char visParts;
 			if (!IsVisible( player, CHECK_FOV, &visParts ))
@@ -1414,14 +1414,19 @@ CCSPlayer *CCSBot::FindMostDangerousThreat( void )
 			if (m_watchInfo[i].timestamp <= 0.0f)
 				continue;
 
-			const float recentTime = 3.0f;
+			const float recentTime = 3.0f;		
 			if (gpGlobals->curtime - m_watchInfo[i].timestamp < recentTime)
 			{
+#ifndef DEATHMATCH	
 				if (m_watchInfo[i].isEnemy)
 					++m_nearbyEnemyCount;
 				else
 					++m_nearbyFriendCount;
 			}
+#else
+				++m_nearbyEnemyCount;
+		}
+#endif				
 		}
 
 		// note when we saw this batch of enemies
@@ -1759,9 +1764,10 @@ public:
 
 	bool operator() ( CBasePlayer *player )
 	{
+#ifndef DEATHMATCH		
 		if (!m_me->IsEnemy( player ))
 			return true;
-
+#endif
 		if (m_testFOV && !(const_cast< CCSBot * >(m_me)->FInViewCone( player->WorldSpaceCenter() )))
 			return true;
 

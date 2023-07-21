@@ -676,7 +676,7 @@ void CCSBot::Update( void )
 		}
 	}
 
-
+#ifndef DEATHMATCH
 	//
 	// Follow nearby humans if our co-op is high and we have nothing else to do
 	// If we were just following someone, don't auto-follow again for a short while to 
@@ -693,7 +693,6 @@ void CCSBot::Update( void )
 		!IsBlind() && 
 		!GetGameState()->IsAtPlantedBombsite())
 	{
-
 		// chance of following is proportional to teamwork attribute
 		if (GetProfile()->GetTeamwork() > RandomFloat( 0.0f, 1.0f ))
 		{
@@ -762,7 +761,7 @@ void CCSBot::Update( void )
 			}
 		}
 	}
-
+#endif
 
 	//
 	// Execute state machine
@@ -850,7 +849,11 @@ public:
 
 	bool operator() ( CBasePlayer *player )
 	{
+#ifndef DEATHMATCH
 		if (player->IsAlive() && !m_me->InSameTeam( player ))
+#else
+		if (player->IsAlive())
+#endif			
 		{
 			CFmtStr msg;
 			player->EntityText(	0,
@@ -1171,11 +1174,11 @@ void CCSBot::UpdateTravelDistanceToAllPlayers( void )
 			
 			if (!player->IsAlive())
 				continue;
-
+#ifndef DEATHMATCH
 			// skip friends for efficiency
 			if (player->InSameTeam( this ))
 				continue;
-
+#endif
 			int which = player->entindex() % MAX_PLAYERS;
 
 			// if player is very far away, update every third time (on phase 0)

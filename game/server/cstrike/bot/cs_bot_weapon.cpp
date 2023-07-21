@@ -81,7 +81,7 @@ void CCSBot::FireWeaponAtEnemy( void )
 			if (onTarget > aimTolerance)
 			{
 				bool doAttack;
-
+#ifndef DEATHMATCH
 				// if friendly fire is on, don't fire if a teammate is blocking our line of fire
 				if (TheCSBots()->AllowFriendlyFireDamage())
 				{
@@ -95,7 +95,9 @@ void CCSBot::FireWeaponAtEnemy( void )
 					// fire freely
 					doAttack = true;
 				}
-
+#else
+				doAttack = true;
+#endif
 				if (doAttack)
 				{
 					// if we are using a knife, only swing it if we're close
@@ -919,7 +921,7 @@ public:
 	{
 		if (player == m_me || !player->IsAlive())
 			return true;
-
+#ifndef DEATHMATCH
 		if (m_me->InSameTeam( player ))
 		{
 			Vector to = player->EyePosition() - m_me->EyePosition();
@@ -937,7 +939,7 @@ public:
 				}
 			}
 		}
-
+#endif
 		return true;
 	}
 
@@ -964,6 +966,7 @@ void CCSBot::UpdateGrenadeThrow( void )
 				return;
 			}
 
+#ifndef DEATHMATCH
 			if (m_lookAtSpotState == LOOK_AT_SPOT)
 			{
 				// don't throw if there are friends ahead of us
@@ -979,7 +982,11 @@ void CCSBot::UpdateGrenadeThrow( void )
 					PrintIfWatched( "%3.2f: Grenade: Friend is in the way...\n", gpGlobals->curtime );
 				}
 			}
-
+#else
+			m_grenadeTossState = FINISH_THROW;
+			m_tossGrenadeTimer.Start( 1.0f );
+			PrintIfWatched( "%3.2f: Grenade: FINISH_THROW\n", gpGlobals->curtime );
+#endif					
 			// hold in the trigger and be ready to throw
 			PrimaryAttack();
 
@@ -1308,6 +1315,7 @@ bool CCSBot::BumpWeapon( CBaseCombatWeapon *pWeapon )
  */
 bool CCSBot::IsFriendInLineOfFire( void )
 {
+#ifndef DEATHMATCH
 	// compute the unit vector along our view
 	Vector aimDir = GetViewVector();
 
@@ -1327,7 +1335,7 @@ bool CCSBot::IsFriendInLineOfFire( void )
 				return true;
 		}
 	}
-
+#endif
 	return false;
 }
 

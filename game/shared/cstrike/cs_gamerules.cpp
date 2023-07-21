@@ -4481,7 +4481,7 @@ ConVar cl_autohelp(
 		char szMapPath[MAX_PATH];
 		
 		Q_snprintf(szMapPath, sizeof(szMapPath), "scripts/maps/%s.txt", STRING(gpGlobals->mapname));
-		printf("%s\n", szMapPath);
+		printf("Using \"%s\" file with spawndots\n", szMapPath);
 		file = g_pFullFileSystem->Open(szMapPath,"r");
 		if(file != FILESYSTEM_INVALID_HANDLE)
 		{
@@ -4513,9 +4513,6 @@ ConVar cl_autohelp(
 			Warning("No file with spawn points was found!\n");
 		}
 #endif		
-		
-		
-		//TODO MOVE PARSER HERE!!!
 		// Check to see if this map has a bomb target in it
 		if ( gEntList.FindEntityByClassname( NULL, "func_bomb_target" ) )
 		{
